@@ -22,10 +22,10 @@ def shortname(url):
 def down_image(url, dst, dryrun):
     import urllib
     if not os.path.exists(dst):
-        print 'Downloading', url
+        print '[I] Downloading', url
         urllib.urlretrieve(url, dst)
     else:
-        print 'Skip', url
+        print '[W] Skip', url
 
 
 def mkdirs(path):
@@ -35,7 +35,7 @@ def mkdirs(path):
 
 def down_post(srchtml, imgdir, dryrun):
     with open(srchtml, 'rt') as fp:
-        print '= Parsing', srchtml
+        print '=== Parsing', srchtml
         text = fp.read()
         ftext = ''
         pos = 0
@@ -43,7 +43,7 @@ def down_post(srchtml, imgdir, dryrun):
         for m in re.finditer(r'<img[^>]*src\s*=\s*"([^\'"]*)"[^>]*>', text):
             url = m.group(1).strip()
             if url.startswith('images/'):
-                print 'Has been converted, skip it'
+                print '[W] Has been converted, skip it'
                 return
             span = m.regs[1]
             ftext += text[pos:span[0]]
@@ -55,6 +55,7 @@ def down_post(srchtml, imgdir, dryrun):
                 ftext += 'images/' + imgname
                 pos = span[1]
             else:
+                print '[W] Skip image', url
                 pos = span[0]
 
         ftext += text[pos:]
@@ -74,7 +75,7 @@ def down_dir(srcdir, dstdir=None, dryrun=False):
         if not dryrun and ftext:
             mkdirs(dstdir)
             dsthtml = os.path.join(dstdir, os.path.basename(srchtml))
-            print 'Writing to', dsthtml
+            print '[I] Writing to', dsthtml
             with open(dsthtml, 'wt') as fp:
                 fp.write(ftext)
 
