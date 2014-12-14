@@ -40,38 +40,54 @@ def down_post(srchtml, imgdir, dryrun):
         ftext = ''
         pos = 0
         htmlname = os.path.splitext(os.path.basename(srchtml))[0]
+        images = []
         for m in re.finditer(r'<img[^>]*src\s*=\s*"([^\'"]*)"[^>]*>', text):
             url = m.group(1).strip()
-            if url.startswith('images/'):
-                print '[W] Has been converted, skip it'
-                return
             span = m.regs[1]
-            ftext += text[pos:span[0]]
             _, ext = os.path.splitext(url)
-            if ext:
+            if not url.startswith('images/') and ext:
                 imgname = htmlname + '_' + shortname(url) + ext
                 dst = os.path.join(imgdir, imgname)
                 down_image(url, dst, dryrun)
                 ftext += 'images/' + imgname
+                ftext += text[pos:span[0]]
                 pos = span[1]
+                images.append(imgname)
             else:
                 print '[W] Skip image', url
-                pos = span[0]
+                images.append(os.path.basename(url))
 
-        ftext += text[pos:]
-        return ftext
+        if pos != 0:
+            ftext += text[pos:]
+        else:
+            ftext = None
+        return ftext, images
+
+    return None, None
 
 
-def down_dir(srcdir, dstdir=None, dryrun=False):
+def clean_unused_images(imgdir, allimages, dryrun):
+    import shutil
+    # clean unused images
+    for img in os.listdir(imgdir):
+        if img not in allimages:
+            print '[W] Remove unused image', img
+            if not dryrun:
+                shutil.remove(img)
+
+
+def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
     if dstdir is None:
         dstdir = srcdir
 
     import glob
     imgdir = os.path.join(dstdir, 'images')
+    allimages = []
     for srchtml in glob.glob(os.path.join(srcdir, '*.html')):
         if not dryrun:
             mkdirs(imgdir)
-        ftext = down_post(srchtml, imgdir, dryrun)
+        ftext, images = down_post(srchtml, imgdir, dryrun)
+        allimages += images or []
         if not dryrun and ftext:
             mkdirs(dstdir)
             dsthtml = os.path.join(dstdir, os.path.basename(srchtml))
@@ -79,6 +95,8 @@ def down_dir(srcdir, dstdir=None, dryrun=False):
             with open(dsthtml, 'wt') as fp:
                 fp.write(ftext)
 
+    if clean:
+        clean_unused_images(imgdir, set(allimages), dryrun)
 
 if __name__ == '__main__':
     import argparse
@@ -100,7 +118,10 @@ if __name__ == '__main__':
                         help='directory to save final HTML files and images')
     parser.add_argument('--dryrun', '-D', action='store_true',
                         help='Do not save result')
+    parser.add_argument('--no-clean', '-n', dest='no_clean',
+                        action='store_true',
+                        help='Do not remove unused images')
 
     args = parser.parse_args()
 
-    down_dir(args.source, args.target, args.dryrun)
+    down_dir(args.source, args.target, not args.no_clean, args.dryrun)
