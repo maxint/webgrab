@@ -74,6 +74,10 @@ def clean_unused_images(imgdir, allimages, dryrun):
             print '[W] Remove unused image', img
             if not dryrun:
                 shutil.remove(img)
+    if not dryrun:
+        if len(os.listdir(imgdir)) == 0:
+            print '[W] Remove empty directory', imgdir
+            shutil.rmtree(imgdir)
 
 
 def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
