@@ -3,4 +3,4 @@ webgrab
 
 Web grabber utilities
 
-- downimg.py Download images in <img> of HTML files.
+- downimg.py Download images of `<img>` in HTML files.
