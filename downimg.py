@@ -39,14 +39,13 @@ def down_post(srchtml, imgdir, dryrun):
         text = fp.read()
         ftext = ''
         pos = 0
-        htmlname = os.path.splitext(os.path.basename(srchtml))[0]
         images = []
         for m in re.finditer(r'<img[^>]*src\s*=\s*"([^\'"]*)"[^>]*>', text):
             url = m.group(1).strip()
             span = m.regs[1]
             _, ext = os.path.splitext(url)
             if not url.startswith('images/') and ext:
-                imgname = htmlname + '_' + shortname(url) + ext
+                imgname = shortname(url) + ext
                 dst = os.path.join(imgdir, imgname)
                 down_image(url, dst, dryrun)
                 ftext += 'images/' + imgname
