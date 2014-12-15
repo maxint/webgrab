@@ -101,6 +101,8 @@ def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
     if clean:
         clean_unused_images(imgdir, set(allimages), dryrun)
 
+    print 'Done!'
+
 if __name__ == '__main__':
     import argparse
 
@@ -128,3 +130,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     down_dir(args.source, args.target, not args.no_clean, args.dryrun)
+
+    os.system('pause')
