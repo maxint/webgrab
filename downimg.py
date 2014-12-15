@@ -46,8 +46,9 @@ def down_post(srchtml, imgdir, dryrun):
             _, ext = os.path.splitext(url)
             if not url.startswith('images/') and ext:
                 imgname = shortname(url) + ext
-                dst = os.path.join(imgdir, imgname)
-                down_image(url, dst, dryrun)
+                if not dryrun:
+                    mkdirs(imgdir)
+                    down_image(url, os.path.join(imgdir, imgname), dryrun)
                 ftext += 'images/' + imgname
                 ftext += text[pos:span[0]]
                 pos = span[1]
@@ -66,6 +67,9 @@ def down_post(srchtml, imgdir, dryrun):
 
 
 def clean_unused_images(imgdir, allimages, dryrun):
+    if not os.path.exists(imgdir):
+        return
+
     import shutil
     # clean unused images
     for img in os.listdir(imgdir):
@@ -87,8 +91,6 @@ def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
     imgdir = os.path.join(dstdir, 'images')
     allimages = []
     for srchtml in glob.glob(os.path.join(srcdir, '*.html')):
-        if not dryrun:
-            mkdirs(imgdir)
         ftext, images = down_post(srchtml, imgdir, dryrun)
         allimages += images or []
         if not dryrun and ftext:
@@ -119,7 +121,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Download images in <img>')
     parser.add_argument('source', nargs='?', default='posts',
-                        type=readable_dir,
+                        action=readable_dir,
                         help='source directory with HTML files')
     parser.add_argument('--target', '-t', nargs='?', default=None,
                         help='directory to save final HTML files and images')
