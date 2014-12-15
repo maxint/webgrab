@@ -5,6 +5,7 @@ posts/
 .ropeproject/
 mag/*
 !mag/common.js
+binary/
 
 # C extensions
 *.so

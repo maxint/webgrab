@@ -7,9 +7,14 @@
 Generate HTML posts from XLSX file.
 """
 
-import xlrd
 import os
 import sys
+try:
+    import xlrd
+except ImportError:
+    import zipimport
+    zippath = os.path.join(os.path.dirname(__file__), 'binary/xlrd.zip')
+    xlrd = zipimport.zipimporter(zippath).load_module('xlrd')
 
 
 def read_excel(filename):
