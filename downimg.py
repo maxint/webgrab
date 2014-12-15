@@ -30,7 +30,7 @@ def down_image(url, dst, dryrun):
 
 def mkdirs(path):
     if not os.path.exists(path):
-        os.mkdirs(path)
+        os.makedirs(path)
 
 
 def down_post(srchtml, imgdir, dryrun):
@@ -106,14 +106,16 @@ def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
 if __name__ == '__main__':
     import argparse
 
-    def readable_dir(path):
-        if not os.path.isdir(path):
-            msg = '{0} is not a valid directory'.format(path)
-            raise argparse.ArgumentTypeError(msg)
-        if not os.access(path, os.R_OK):
-            msg = '{0} is not a readable directory'.format(path)
-            raise argparse.argumenttypeerror(msg)
-        return path
+    class readable_dir(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            path = values
+            if not os.path.isdir(path):
+                msg = '{0} is not a valid directory'.format(path)
+                parser.error(msg)
+            if not os.access(path, os.R_OK):
+                msg = '{0} is not a readable directory'.format(path)
+                parser.error(msg)
+            setattr(namespace, self.dest, path)
 
     parser = argparse.ArgumentParser(description='Download images in <img>')
     parser.add_argument('source', nargs='?', default='posts',
