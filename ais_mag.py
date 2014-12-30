@@ -53,11 +53,14 @@ def makepost(filename, post):
         fp.write('''<!DOCTYPE html>
 <html>
     <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"></meta>
     <title>{0}</title>
     </head>
     <body>
-        <iframe width="100%" height="800px" src="{1}" />
+
+        <div id="main">Clip content to here...</div>
+        <a href="{1}">{0}</a>
+
     </body>
 </html>'''.format(post["title"].encode('utf-8'),
                   post["url"].encode('utf-8')))
