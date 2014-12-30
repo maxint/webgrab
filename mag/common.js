@@ -83,12 +83,16 @@ withjQuery(function($, window){
                     $("ol[id^='M_']").each(function(){
                         var cat = $(this).attr('id').substr(2);
                         var range = mag.categories[cat];
-                        $(this).empty().each(function(){
-                            for (var i = range.start; i < range.end; ++i) {
-                                var post = mag.posts[i];
-                                $('<li><a href="?category=' + category + '&id=' + i + '">' + post.title +'</a></li>').appendTo($(this));
-                            }
-                        });
+                        if (range) {
+                            $(this).empty().each(function(){
+                                for (var i = range.start; i < range.end; ++i) {
+                                    var post = mag.posts[i];
+                                    $('<li><a href="?category=' + category + '&id=' + i + '">' + post.title +'</a></li>').appendTo($(this));
+                                }
+                            });
+                        } else {
+                            console.log('Can not find "' + cat + '" in mag.json');
+                        }
                     });
                 });
             });
