@@ -33,7 +33,8 @@ def mkdirs(path):
         os.makedirs(path)
 
 
-def down_post(srchtml, imgdir, dryrun):
+def down_in_post(srchtml, imgdir, dryrun):
+    imgsubpath = os.path.basename(imgdir) + '/'
     with open(srchtml, 'rt') as fp:
         print '=== Parsing', srchtml
         text = fp.read()
@@ -44,13 +45,13 @@ def down_post(srchtml, imgdir, dryrun):
             url = m.group(1).strip()
             span = m.regs[1]
             _, ext = os.path.splitext(url)
-            if not url.startswith('images/') and ext:
+            if not url.startswith(imgsubpath) and ext:
                 imgname = shortname(url) + ext
                 if not dryrun:
                     mkdirs(imgdir)
                     down_image(url, os.path.join(imgdir, imgname), dryrun)
-                ftext += 'images/' + imgname
                 ftext += text[pos:span[0]]
+                ftext += imgsubpath + imgname
                 pos = span[1]
                 images.append(imgname)
             else:
@@ -76,22 +77,29 @@ def clean_unused_images(imgdir, allimages, dryrun):
         if img not in allimages:
             print '[W] Remove unused image', img
             if not dryrun:
-                shutil.remove(img)
+                os.remove(os.path.join(imgdir, img))
     if not dryrun:
         if len(os.listdir(imgdir)) == 0:
             print '[W] Remove empty directory', imgdir
             shutil.rmtree(imgdir)
 
 
-def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
+def down(src, dstdir=None, clean=True, dryrun=False):
+    if os.path.isdir(src):
+        srcdir = src
+        import glob
+        srchtmls = glob.glob(os.path.join(srcdir, '*.html'))
+    else:
+        srcdir = os.path.dirname(src)
+        srchtmls = [src]
+
     if dstdir is None:
         dstdir = srcdir
 
-    import glob
     imgdir = os.path.join(dstdir, 'images')
     allimages = []
-    for srchtml in glob.glob(os.path.join(srcdir, '*.html')):
-        ftext, images = down_post(srchtml, imgdir, dryrun)
+    for srchtml in srchtmls:
+        ftext, images = down_in_post(srchtml, imgdir, dryrun)
         allimages += images or []
         if not dryrun and ftext:
             mkdirs(dstdir)
@@ -100,7 +108,7 @@ def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
             with open(dsthtml, 'wt') as fp:
                 fp.write(ftext)
 
-    if clean:
+    if clean and os.path.isdir(src):
         clean_unused_images(imgdir, set(allimages), dryrun)
 
     print 'Done!'
@@ -108,20 +116,20 @@ def down_dir(srcdir, dstdir=None, clean=True, dryrun=False):
 if __name__ == '__main__':
     import argparse
 
-    class readable_dir(argparse.Action):
+    class readable(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
             path = values
-            if not os.path.isdir(path):
-                msg = '{0} is not a valid directory'.format(path)
+            if not os.path.exists(path):
+                msg = '{0} is not a valid path'.format(path)
                 parser.error(msg)
             if not os.access(path, os.R_OK):
-                msg = '{0} is not a readable directory'.format(path)
+                msg = '{0} is not a readable path'.format(path)
                 parser.error(msg)
             setattr(namespace, self.dest, path)
 
     parser = argparse.ArgumentParser(description='Download images in <img>')
     parser.add_argument('source', nargs='?', default='posts',
-                        action=readable_dir,
+                        action=readable,
                         help='source directory with HTML files')
     parser.add_argument('--target', '-t', nargs='?', default=None,
                         help='directory to save final HTML files and images')
@@ -133,6 +141,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    down_dir(args.source, args.target, not args.no_clean, args.dryrun)
+    down(args.source, args.target, not args.no_clean, args.dryrun)
 
     os.system('pause')
