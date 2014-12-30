@@ -106,7 +106,7 @@ h1 {
 }
 #content {
     width: 680px;
-    margin: 0 auto;
+    margin: 20px auto;
 }
 #content p {
     text-indent: 2em;
@@ -122,5 +122,5 @@ span#nav_prev, span#nav_next {
     margin: 20px auto;
 }
 #post h1#title {
-    margin: 16px 100px;
+    margin: 16px 160px;
 }
