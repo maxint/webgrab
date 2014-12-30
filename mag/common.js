@@ -118,7 +118,11 @@ withjQuery(function($, window){
                     data.find('#nav_prev a').attr('href', '?category=' + category + '&id=' + (id - 1 + count) % count);
                     data.find('#nav_next a').attr('href', '?category=' + category + '&id=' + (id + 1) % count);
                     $('#main').empty().append(data.find('#main').html());
-                    $('#content').load('posts/' + id + '.html');
+                    $('#content').load('posts/' + id + '.html', function(){
+                        $(this).find('img').each(function(){
+                            $(this).attr('src', 'posts/' + $(this).attr('src'))
+                        });
+                    });
                     document.title = post.title;
                 });
             });
