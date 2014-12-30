@@ -52,6 +52,13 @@ function dirname(path) {
     return path.replace(/\\/g,'/').replace(/\/[^\/]*$/, '');;
 }
 
+if (typeof String.prototype.startsWith != 'function') {
+  // see below for better implementation!
+  String.prototype.startsWith = function (str){
+    return this.indexOf(str) == 0;
+  };
+}
+
 // the guts of this userscript
 withjQuery(function($, window){
     // "back to top" button
@@ -120,7 +127,10 @@ withjQuery(function($, window){
                     $('#main').empty().append(data.find('#main').html());
                     $('#content').load('posts/' + id + '.html', function(){
                         $(this).find('img').each(function(){
-                            $(this).attr('src', 'posts/' + $(this).attr('src'))
+                            var oldsrc = $(this).attr('src');
+                            if (oldsrc.startsWith('images/')) {
+                                $(this).attr('src', 'posts/' + oldsrc);
+                            }
                         });
                     });
                     document.title = post.title;
