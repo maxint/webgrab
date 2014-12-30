@@ -1,0 +1,126 @@
+/* http://stackoverflow.com/questions/4698054/css-does-the-width-include-the-padding */
+* {
+  box-sizing:border-box;
+  -moz-box-sizing:border-box;
+  -webkit-box-sizing:border-box
+}
+
+body {
+    line-height: 150%;
+    font-family: Arial, Helvetica, sans-serif;
+    background-image: url(images/background.jpg);
+    background-repeat: repeat;
+    background-color: #726f6f;
+}
+
+div {
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+}
+
+#wrapper {
+    margin: 10px auto;
+    width: 800px;
+    background-color: #FFFFFF;
+}
+
+#category .container {
+    width: 400px;
+}
+
+#recommend {
+    width: 800px;
+}
+
+#footer {
+    height: 30px;
+}
+
+.container {
+    background-image: url(images/13.png);
+    font-size: 14px;
+    line-height: 200%;
+    padding-left: 30px;
+    padding-top: 20px;
+}
+.container > h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+.container > ol {
+    padding-left: 16px;
+    margin-bottom: 0px;
+    margin-right: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.container > ol > li:before {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+#backtop {
+    position: fixed;
+    bottom: 60px;
+    right: 200px;
+    display: none;
+    cursor: pointer;
+}
+
+a { 
+    text-decoration: none;
+}
+a:hover {
+    txt-decoration:underline;
+}
+a:link {
+    color: #000000;
+}
+a:visited {
+    color:#006;
+}
+a:hover {
+    color: #F60;
+}
+
+h1 {
+    font-size: 24px;
+    text-align: center;
+}
+.center {
+    text-align: center;
+    margin: 0 auto;
+}
+#post {
+    font-size: 14px;
+    line-height: 28px;
+}
+#content {
+    width: 680px;
+    margin: 0 auto;
+}
+#content p {
+    text-indent: 2em;
+    white-space: normal;
+}
+#date {
+    margin: 10px;
+}
+span#nav_prev, span#nav_next {
+    margin: auto 50px;
+}
+#navigate {
+    margin: 20px auto;
+}
+#post h1#title {
+    margin: 16px 100px;
+}
