@@ -81,12 +81,13 @@ withjQuery(function($, window){
         $('#header-image').attr('src', 'images/' + category + '.jpg');
         if (id == null) {
             // list page
-            $.get(category + '.html', function(data){
-                data = $(data);
-                $('#main').empty().append(data.find('#main').html());
-                document.title = data.find('title').text();
+            $('#main_wrapper').load(category + '.html #main', function(data){
+                var match = /<title>([^<]+)<\/title>/.exec(data);
+                if (match)
+                    document.title = match[1];
                 // generate list
-                $.getJSON('mag.json', function(mag) {
+                $.getJSON('mag.js', function(mag) {
+                    console.log(mag);
                     $("ol[id^='M_']").each(function(){
                         var cat = $(this).attr('id').substr(2);
                         var range = mag.categories[cat];
@@ -105,26 +106,25 @@ withjQuery(function($, window){
             });
         } else {
             // post
-            $.getJSON('mag.json', function(mag) {
+            $.getJSON('mag.js', function(mag) {
                 var count = mag.posts.length;
                 var id0 = parseInt(id);
                 id = Math.min(count-1, Math.max(0, id0));
-                $.get('post.html', function(data){
+                $.ajax({ url: 'post.html', context: $('#main_wrapper'), success: function(data){
                     var post = mag.posts[id];
-                    data = $(data);
-                    data.find('#title').html(post.title);
-                    data.find('#original_url').attr('href', post.url);
-                    data.find('#date').first().each(function(){
-                        var html = $(this).html();
-                        var year = Math.floor(post.date / 10000);
-                        var month = Math.floor((post.date % 10000) / 100);
-                        var day = Math.floor(post.date % 100);
-                        html = html.replace('${year}', year).replace('${month}', month).replace('${day}', day);
-                        $(this).html(html);
-                    });
-                    data.find('#nav_prev a').attr('href', '?category=' + category + '&id=' + (id - 1 + count) % count);
-                    data.find('#nav_next a').attr('href', '?category=' + category + '&id=' + (id + 1) % count);
-                    $('#main').empty().append(data.find('#main').html());
+                    var dict = {
+                        '${title}': post.title,
+                        '${url}': post.url,
+                        '${year}': Math.floor(post.date / 10000),
+                        '${month}': Math.floor((post.date % 10000) / 100),
+                        '${day}': Math.floor(post.date % 100),
+                        '${prev_url}': '?category=' + category + '&id=' + (id - 1 + count) % count,
+                        '${next_url}': '?category=' + category + '&id=' + (id + 1) % count,
+                    }
+                    for (var key in dict) {
+                        data = data.replace(key, dict[key]);
+                    }
+                    $(this).empty().append($(data));
                     $('#content').load('posts/' + id + '.html', function(){
                         $(this).find('img').each(function(){
                             var oldsrc = $(this).attr('src');
@@ -134,7 +134,7 @@ withjQuery(function($, window){
                         });
                     });
                     document.title = post.title;
-                });
+                }});
             });
         }
     }
