@@ -92,7 +92,7 @@ def main(xlsfilename):
         sys.stdout.flush()
         makepost(postpath, post)
 
-    jsonpath = os.path.join(dstdir, 'mag.json')
+    jsonpath = os.path.join(dstdir, 'mag.js')
     print ''
     print '[I] Generating', jsonpath
     save_json(jsonpath, mag)
