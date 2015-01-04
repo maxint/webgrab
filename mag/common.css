@@ -124,3 +124,6 @@ span#nav_prev, span#nav_next {
 #post h1#title {
     margin: 16px 160px;
 }
+#navigate img {
+    border-width: 0px;
+}

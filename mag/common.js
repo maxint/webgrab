@@ -120,7 +120,7 @@ withjQuery(function($, window){
                         '${day}': Math.floor(post.date % 100),
                         '${prev_url}': '?category=' + category + '&id=' + (id - 1 + count) % count,
                         '${next_url}': '?category=' + category + '&id=' + (id + 1) % count,
-                    }
+                    };
                     for (var key in dict) {
                         data = data.replace(key, dict[key]);
                     }
