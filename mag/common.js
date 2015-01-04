@@ -110,7 +110,7 @@ withjQuery(function($, window){
                 var count = mag.posts.length;
                 var id0 = parseInt(id);
                 id = Math.min(count-1, Math.max(0, id0));
-                $.ajax({ url: 'post.html', context: $('#main_wrapper'), success: function(data){
+                $('#main_wrapper').load('post.html', function(data){
                     var post = mag.posts[id];
                     var dict = {
                         '${title}': post.title,
@@ -134,7 +134,7 @@ withjQuery(function($, window){
                         });
                     });
                     document.title = post.title;
-                }});
+                });
             });
         }
     }
