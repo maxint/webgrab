@@ -53,7 +53,7 @@ def makepost(filename, post):
         fp.write('''<!DOCTYPE html>
 <html>
     <head>
-    <meta charset="utf-8"></meta>
+    <meta charset="utf-8" />
     <title>{0}</title>
     </head>
     <body>
