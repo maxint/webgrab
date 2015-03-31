@@ -130,7 +130,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download images in <img>')
     parser.add_argument('source', nargs='?', default='posts',
                         action=readable,
-                        help='source directory with HTML files')
+                        help='source directory with HTML files or single HTML file (default is "posts")')
     parser.add_argument('--target', '-t', nargs='?', default=None,
                         help='directory to save final HTML files and images')
     parser.add_argument('--dryrun', '-D', action='store_true',
