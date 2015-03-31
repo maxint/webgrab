@@ -15,3 +15,9 @@
 3. 拖动`posts`目录到`downimg.py`，下载`posts`目录下HTML文件需要的图片到`posts/images`目录。
 4. 默认`downimg.py`扫描`posts`子目录下的HTML文件，如果要处理其它目录或文件，可以拖动目标目录或文件到脚本文件上。
 
+
+# 安装依赖
+
+```
+pip install -r requirements.txt
+```
