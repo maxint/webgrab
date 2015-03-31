@@ -2,6 +2,7 @@
 
 用于辅助制作 ArcSoft AISG 内刊。
 
+
 # 文件说明
 
 - `ais_mag.py`: 从Excel文件中读取文章列表，生成`mag.json`和文章框架到`posts`子目录中。
@@ -21,3 +22,4 @@
 ```
 pip install -r requirements.txt
 ```
+也可以打包安装好的`xlrd`到'binary/xlrd.zip`。
