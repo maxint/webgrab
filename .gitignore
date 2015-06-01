@@ -6,6 +6,7 @@ posts/
 mag/*
 !mag/common.js
 binary/
+.idea/
 
 # C extensions
 *.so

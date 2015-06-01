@@ -23,7 +23,7 @@ def read_excel(filename):
     posts = dict()
     for i in range(table.nrows):
         row = table.row_values(i)
-        if len(row) == 4 and all(row):
+        if len(row) >= 4 and all(row[:4]):
             category = row[0].strip()
             if category not in posts:
                 posts[category] = list()
@@ -121,7 +121,7 @@ if __name__ == '__main__':
             setattr(namespace, self.dest, path)
 
     parser = argparse.ArgumentParser(description='Generate posts')
-    parser.add_argument('xlsfile', nargs='?', default=None,
+    parser.add_argument('xlsfile', default=None,
                         action=readable_file,
                         help='Excel file to read post list')
 
