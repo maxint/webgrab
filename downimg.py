@@ -10,8 +10,11 @@ Download images in <img> to local "images" directory.
 import re
 import hashlib
 import os
+import json
+
 
 MD5 = hashlib.md5()
+IMG_TAG_RE = re.compile(r'<img\s[^>]*src\s*=\s*"([^\'"]*)"[^>]*>')
 
 
 def short_name(url):
@@ -33,36 +36,50 @@ def mkdirs(path):
         os.makedirs(path)
 
 
+def extract_extension(url):
+    _, ext = os.path.splitext(url)
+    pos = ext.find('?')
+    if pos == -1:
+        pos = ext.find('&')
+    return ext if pos == -1 else ext[:pos]
+
+
+def convert_post(text, tag_re, dry_run, img_path_prefix):
+    ftext = ''
+    pos = 0
+    images = dict()
+    for m in tag_re.finditer(text):
+        url = m.group(1).strip()
+        span = m.span(1)
+        ext = extract_extension(url) or '.jpg' # default is jpg
+        if not url.startswith(img_path_prefix) and ext:
+            img_name = short_name(url) + ext
+            ftext += text[pos:span[0]]
+            ftext += img_path_prefix + img_name
+            pos = span[1]
+            images[img_name] = url
+        else:
+            print '[W] Ignore URL', url
+            images[os.path.basename(url)] = None
+
+    if pos != 0:
+        ftext += text[pos:]
+    else:
+        ftext = None
+    return ftext, images
+
+
 def down_in_post(src_html, img_dir, dry_run):
-    img_subpath = os.path.basename(img_dir) + '/'
+    img_path_prefix = os.path.basename(img_dir) + '/'
     with open(src_html, 'rt') as fp:
         print '=== Parsing', src_html
         text = fp.read()
-        ftext = ''
-        pos = 0
-        images = []
-        for m in re.finditer(r'<img[^>]*src\s*=\s*"([^\'"]*)"[^>]*>', text):
-            url = m.group(1).strip()
-            dir(m)
-            span = m.span(1)
-            _, ext = os.path.splitext(url)
-            if not url.startswith(img_subpath) and ext:
-                img_name = short_name(url) + ext
-                if not dry_run:
+        ftext, images = convert_post(text, IMG_TAG_RE, dry_run, img_path_prefix)
+        if not dry_run and images:
+            for img, url in images.iteritems():
+                if url:
                     mkdirs(img_dir)
-                    down_image(url, os.path.join(img_dir, img_name), dry_run)
-                ftext += text[pos:span[0]]
-                ftext += img_subpath + img_name
-                pos = span[1]
-                images.append(img_name)
-            else:
-                print '[W] Skip image', url
-                images.append(os.path.basename(url))
-
-        if pos != 0:
-            ftext += text[pos:]
-        else:
-            ftext = None
+                    down_image(url, os.path.join(img_dir, img), dry_run)
         return ftext, images
 
 
@@ -96,10 +113,15 @@ def down(src, dst_dir=None, clean=True, dry_run=False):
         dst_dir = src_dir
 
     img_dir = os.path.join(dst_dir, 'images')
-    all_images = []
+    img_js = os.path.join(dst_dir, 'images.js')
+    try:
+        exists_images = json.load(open(img_js))
+    except:
+        exists_images = dict()
+    all_images = dict()
     for src_html in src_htmls:
         ftext, images = down_in_post(src_html, img_dir, dry_run)
-        all_images += images or []
+        all_images.update(images)
         if not dry_run and ftext:
             mkdirs(dst_dir)
             dst_html = os.path.join(dst_dir, os.path.basename(src_html))
@@ -108,7 +130,13 @@ def down(src, dst_dir=None, clean=True, dry_run=False):
                 fp.write(ftext)
 
     if clean and os.path.isdir(src):
-        clean_unused_images(img_dir, set(all_images), dry_run)
+        clean_unused_images(img_dir, all_images.keys(), dry_run)
+        for k in exists_images.keys():
+            if k not in all_images:
+                exists_images.pop(k)
+
+    all_images.update(exists_images)
+    json.dump(all_images, open(img_js, 'w'), indent=2)
 
     print 'Done!'
 
