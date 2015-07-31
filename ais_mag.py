@@ -45,7 +45,7 @@ def mkdirs(path):
         os.makedirs(path)
 
 
-def makepost(filename, post):
+def make_post(filename, post):
     if os.path.exists(filename):
         return
 
@@ -66,9 +66,9 @@ def makepost(filename, post):
                   post["url"].encode('utf-8')))
 
 
-def main(xlsfilename):
-    mag = read_excel(xlsfilename)
-    dstdir = os.path.dirname(xlsfilename)
+def main(xls_path):
+    mag = read_excel(xls_path)
+    dst_dir = os.path.dirname(xls_path)
 
     # format data
     categories = dict()
@@ -82,22 +82,21 @@ def main(xlsfilename):
     mag = dict(categories=categories,
                posts=posts)
 
-    postdir = os.path.join(dstdir, 'posts')
-    mkdirs(postdir)
+    post_dir = os.path.join(dst_dir, 'posts')
+    mkdirs(post_dir)
     for i, post in enumerate(posts):
-        postpath = os.path.join(postdir, str(i) + '.html')
+        post_path = os.path.join(post_dir, str(i) + '.html')
         percent = (i+1) * 100 / len(posts)
         msg = '\r[I] Generating posts ... [{}%]'.format(percent)
         sys.stdout.write(msg)
         sys.stdout.flush()
-        makepost(postpath, post)
+        make_post(post_path, post)
 
-    jsonpath = os.path.join(dstdir, 'mag.js')
-    print ''
-    print '[I] Generating', jsonpath
-    save_json(jsonpath, mag)
+    json_path = os.path.join(dst_dir, 'mag.js')
+    save_json(json_path, mag)
 
-    print 'Done!'
+    print('')
+    print('Done!')
 
 
 if __name__ == '__main__':

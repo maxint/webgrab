@@ -12,9 +12,13 @@ import hashlib
 import os
 import json
 
+import logging
+logger = logging.getLogger('webgrab.downimg')
+
 
 MD5 = hashlib.md5()
-IMG_TAG_RE = re.compile(r'<img\s[^>]*src\s*=\s*"([^\'"]*)"[^>]*>')
+IMG_TAG_RE = re.compile(r'<img\s[^>]*\bsrc\s*=\s*"([^\'"]*)"[^>]*>')
+ORIGINAL_IMG_URL = re.compile(r'^" original_src="([^\'"]*)"')
 
 
 def short_name(url):
@@ -25,13 +29,18 @@ def short_name(url):
 def down_image(url, dst, dry_run):
     import urllib
     if not os.path.exists(dst):
-        print '[I] Downloading', url
-        urllib.urlretrieve(url, dst)
+        logger.info('Downloading %s', url)
+        try:
+            urllib.urlretrieve(url, dst)
+        except:
+            if os.path.exists(dst):
+                os.remove(dst)
+            raise
     else:
-        print '[W] Skip', url
+        logger.warn('Ignore downloaded %s', url)
 
 
-def mkdirs(path):
+def makedirs(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -55,12 +64,13 @@ def convert_post(text, tag_re, dry_run, img_path_prefix):
         if not url.startswith(img_path_prefix) and ext:
             img_name = short_name(url) + ext
             ftext += text[pos:span[0]]
-            ftext += img_path_prefix + img_name
+            ftext += img_path_prefix + img_name + '" original_src="' + url
             pos = span[1]
             images[img_name] = url
         else:
-            print '[W] Ignore URL', url
-            images[os.path.basename(url)] = None
+            logger.warn('Ignore local URL %s', url)
+            m = ORIGINAL_IMG_URL.search(text[span[1]:])
+            images[os.path.basename(url)] = m.group(1) if m else None
 
     if pos != 0:
         ftext += text[pos:]
@@ -72,13 +82,13 @@ def convert_post(text, tag_re, dry_run, img_path_prefix):
 def down_in_post(src_html, img_dir, dry_run):
     img_path_prefix = os.path.basename(img_dir) + '/'
     with open(src_html, 'rt') as fp:
-        print '=== Parsing', src_html
+        logger.info('=== Parsing %s', src_html)
         text = fp.read()
         ftext, images = convert_post(text, IMG_TAG_RE, dry_run, img_path_prefix)
         if not dry_run and images:
             for img, url in images.iteritems():
                 if url:
-                    mkdirs(img_dir)
+                    makedirs(img_dir)
                     down_image(url, os.path.join(img_dir, img), dry_run)
         return ftext, images
 
@@ -91,12 +101,12 @@ def clean_unused_images(img_dir, all_images, dry_run):
     # clean unused images
     for img in os.listdir(img_dir):
         if img not in all_images:
-            print '[W] Remove unused image', img
+            logger.warn('Remove unused image %s', img)
             if not dry_run:
                 os.remove(os.path.join(img_dir, img))
     if not dry_run:
         if len(os.listdir(img_dir)) == 0:
-            print '[W] Remove empty directory', img_dir
+            logger.warn('Remove empty directory %s', img_dir)
             shutil.rmtree(img_dir)
 
 
@@ -113,32 +123,37 @@ def down(src, dst_dir=None, clean=True, dry_run=False):
         dst_dir = src_dir
 
     img_dir = os.path.join(dst_dir, 'images')
-    img_js = os.path.join(dst_dir, 'images.js')
-    try:
-        exists_images = json.load(open(img_js))
-    except:
-        exists_images = dict()
     all_images = dict()
     for src_html in src_htmls:
         ftext, images = down_in_post(src_html, img_dir, dry_run)
         all_images.update(images)
         if not dry_run and ftext:
-            mkdirs(dst_dir)
+            makedirs(dst_dir)
             dst_html = os.path.join(dst_dir, os.path.basename(src_html))
-            print '[I] Writing to', dst_html
+            logger.info('Writing to %s', dst_html)
             with open(dst_html, 'wt') as fp:
                 fp.write(ftext)
 
     if clean and os.path.isdir(src):
         clean_unused_images(img_dir, all_images.keys(), dry_run)
-        for k in exists_images.keys():
-            if k not in all_images:
-                exists_images.pop(k)
 
+    dump_download_info(all_images, dst_dir)
+
+
+def dump_download_info(all_images, dst_dir):
+    img_js = os.path.join(dst_dir, 'images.js')
+    try:
+        exists_images = json.load(open(img_js))
+    except:
+        exists_images = dict()
+    for k in exists_images.keys():
+        if k not in all_images:
+            exists_images.pop(k)
     all_images.update(exists_images)
+
+    logger.info('Writing download information to %s', img_js)
     json.dump(all_images, open(img_js, 'w'), indent=2)
 
-    print 'Done!'
 
 if __name__ == '__main__':
     import argparse
@@ -168,6 +183,13 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    from logutils import setup_logging
+    setup_logging('webgrab')
+
+    logger.info('-*- Start Downloading Images -*-')
+
     down(args.source, args.target, not args.no_clean, args.dry_run)
+
+    logger.info('-*- Stop Downloading Images -*-')
 
     os.system('pause')
