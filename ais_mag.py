@@ -1,7 +1,6 @@
-#! /usr/bin/env python
 # coding:utf-8
-# Copyright (C) 2014 maxint <NOT_SPAM_lnychina@gmail.com>
-# Distributed under terms of the MIT license.
+# author: maxint <NOT_SPAM_lnychina@gmail.com>
+# Version: 0.1
 
 """
 Generate HTML posts from XLSX file.
