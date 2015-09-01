@@ -1,6 +1,6 @@
 # coding:utf-8
 # author: maxint <NOT_SPAM_lnychina@gmail.com>
-# Version: 0.1
+# Version: 0.2
 
 """
 Download images in <img> to local "images" directory.
@@ -25,21 +25,26 @@ def short_name(url):
     return MD5.hexdigest()
 
 
-def down_image(url, dst, dry_run):
+def down_image(url, dst):
     import urllib
     if not os.path.exists(dst):
-        logger.info('Downloading %s', url)
-        try:
-            urllib.urlretrieve(url, dst)
-        except:
-            if os.path.exists(dst):
-                os.remove(dst)
-            raise
+        TRY_N = 3
+        for i in xrange(TRY_N):
+            try:
+                urllib.urlretrieve(url, dst)
+                return url
+            except:
+                if os.path.exists(dst):
+                    os.remove(dst)
+                if i == TRY_N - 1:
+                    raise
+                else:
+                    logger.warn('Failed to download %s, retry again', url)
     else:
         logger.warn('Ignore downloaded %s', url)
 
 
-def makedirs(path):
+def make_dirs(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -84,11 +89,13 @@ def down_in_post(src_html, img_dir, dry_run):
         logger.info('=== Parsing %s', src_html)
         text = fp.read()
         ftext, images = convert_post(text, IMG_TAG_RE, dry_run, img_path_prefix)
-        if not dry_run and images:
+        if images:
             for img, url in images.iteritems():
                 if url:
-                    makedirs(img_dir)
-                    down_image(url, os.path.join(img_dir, img), dry_run)
+                    logger.info('Downloading %s', url)
+                    if not dry_run:
+                        make_dirs(img_dir)
+                        down_image(url, os.path.join(img_dir, img))
         return ftext, images
 
 
@@ -127,7 +134,7 @@ def down(src, dst_dir=None, clean=True, dry_run=False):
         ftext, images = down_in_post(src_html, img_dir, dry_run)
         all_images.update(images)
         if not dry_run and ftext:
-            makedirs(dst_dir)
+            make_dirs(dst_dir)
             dst_html = os.path.join(dst_dir, os.path.basename(src_html))
             logger.info('Writing to %s', dst_html)
             with open(dst_html, 'wt') as fp:
@@ -183,7 +190,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     from logutils import setup_logging
-    setup_logging('webgrab')
+    setup_logging('webgrab', 'down_img.log')
 
     logger.info('-*- Start Downloading Images -*-')
 
